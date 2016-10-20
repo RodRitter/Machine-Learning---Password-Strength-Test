@@ -5,6 +5,7 @@ import re
 def parseData(data):
 	features = list()
 	labels = list()
+	passwords = list()
 
 	with open(data) as f:
 		for line in f:
@@ -59,8 +60,9 @@ def parseData(data):
 
 				features.append(feature)
 				labels.append(int(label))
+				passwords.append(password)
 
-	return [ features,  labels]
+	return [ features,  labels, passwords]
 
 
 # Prepare the data
@@ -82,7 +84,7 @@ current = 0
 for index in range(target):
 	if(prediction[index] == testingData[1][index]):
 		current += 1
-		print 'Correct! [Prediction: ' + str(prediction[index]) + '] [Actual: ' + str(testingData[1][index]) + ']'
+		print 'Correct! [Prediction: ' + str(prediction[index]) + '] [Actual: ' + str(testingData[1][index]) + '] [Password: \''+testingData[2][index]+'\']'
 
 print ' '
 print 'Result: ' + str(current) + '/' + str(target)
