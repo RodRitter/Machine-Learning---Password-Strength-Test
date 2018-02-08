@@ -1,92 +1,48 @@
 from sklearn import tree
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.model_selection import train_test_split
 import re
 
-# Returns feature & label arrays [ feature, label ]
-def parseData(data):
-	features = list()
-	labels = list()
-	passwords = list()
+def makeTokens(f):
+    tokens = []
+    for i in f:
+        tokens.append(i)
+    return tokens
 
-	with open(data) as f:
-		for line in f:
-			if line != "":
+def parseFile(file):
+    featureList = list()
+    labelList = list()
+    with(open(file)) as f:
+        for line in f:
+            feat = line.replace('\n', '').split('|')
 
-				both = line.replace('\n', '').split("|")
-				password = both[0]
-				label = both[1]
+            # labels
+            feat[1] = int(feat[1])
+            labelList.append(feat[1])
 
-				feature = [0,0,0,0,0]
+            # features
+            featureList.append(feat[0])
 
-				# FEATURES
-				lenMin = False; # more than 8 chars
-				specChar = False # special character
-				ucChar = False # uppercase character
-				numChar = False # numeric character
+    return [featureList, labelList]
 
-				# More than 8 characters
-				if len(password) > 8:
-					lenMin = True
+trainingData = parseFile('training.txt')
 
-				# Special
-				specialMatch = re.search(r'([^a-zA-Z0-9]+)', password, re.M)
-				if specialMatch:
-					specChar = True
+#labels
+y = trainingData[1]
 
-				# Uppercase
-				ucMatch = re.search(r'([A-Z])', password, re.M)
-				if ucMatch:
-					ucChar = True
-
-				# Numeric
-				numMatch = re.search(r'([0-9])', password, re.M)
-				if numMatch:
-					numChar = True
-
-				# Create rules
-				if lenMin:
-					feature[0] = 1
-
-				if specChar and ucChar and numChar:
-					feature[1] = 3
-
-				if ucChar and numChar:
-					feature[2] = 1
-
-				if specChar and numChar:
-					feature[3] = 2
-
-				if specChar and ucChar:
-					feature[4] = 2
-
-				features.append(feature)
-				labels.append(int(label))
-				passwords.append(password)
-
-	return [ features,  labels, passwords]
+# features
+allFeatures = trainingData[0]
+vectorizer = TfidfVectorizer(tokenizer=makeTokens)
+X = vectorizer.fit_transform(allFeatures)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, random_state=42)
 
 
-# Prepare the data
-trainingData = parseData('training.txt')
-testingData = parseData('testing.txt')
-
-# #The classifier that we're using. A simple decision tree.
+# fit
 clf = tree.DecisionTreeClassifier()
+clf = clf.fit(X_train, y_train)
 
-#Training the classifier with the passwords and their labels.
-clf = clf.fit(trainingData[0], trainingData[1])
-
-#Predicting a password Strength
-prediction = clf.predict(testingData[0])
-
-target = len(testingData[1])
-current = 0
-
-for index in range(target):
-	if(prediction[index] == testingData[1][index]):
-		current += 1
-		print 'Correct! [Prediction: ' + str(prediction[index]) + '] [Actual: ' + str(testingData[1][index]) + '] [Password: \''+testingData[2][index]+'\']'
-
-print ' '
-print 'Result: ' + str(current) + '/' + str(target)
-
-
+# predict
+X_predict = ['eUj+v'] #convertStringToAscii('test')
+X_predict = vectorizer.transform(X_predict)
+prediction = clf.predict(X_predict)
+print(prediction)
