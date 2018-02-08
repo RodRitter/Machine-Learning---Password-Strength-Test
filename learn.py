@@ -42,7 +42,7 @@ clf = tree.DecisionTreeClassifier()
 clf = clf.fit(X_train, y_train)
 
 # predict
-X_predict = ['eUj+v'] #convertStringToAscii('test')
+X_predict = ['eUj+v']
 X_predict = vectorizer.transform(X_predict)
 prediction = clf.predict(X_predict)
 print(prediction)
